@@ -1,0 +1,70 @@
+' Gambas class file
+
+
+
+Public Sub Form_KeyPress()
+
+  If Key.Code = Key.Esc Then
+    Me.Close()
+  Else If Key.Code = Key["Q"] And If Key.Control Or Key.Code = Key["Q"]
+    Me.Close()
+  Else If Key.Code = Key["F11"]
+    FullScreenToggle()
+  Endif
+
+
+End
+
+Public Sub FullScreenToggle()
+
+  Me.FullScreen = Not Me.FullScreen
+
+End
+
+Public Sub Form_Close()
+
+  Settings.Write(Me)
+  MSettings.FullScreen = Me.FullScreen
+  MSettings.Maximized = Me.Maximized
+
+End
+
+Public Sub Form_Open()
+
+
+  Settings.Read(Me)
+  Me.Maximized = MSettings.Maximized
+  Me.FullScreen = MSettings.FullScreen
+
+  loadImage
+
+End
+
+Private Sub loadImage()
+
+  Dim sJson As String
+  Dim sJsonPath As String = "frameImageCarrier.json"
+  Dim hFrameImageCarrier As Collection
+  Dim sBase64 As String
+  Dim sMd5 As String
+
+  Print Now & " load json"
+  sJson = File.Load(sJsonPath)
+  Print Now & " decode json"
+  hFrameImageCarrier = JSON.Decode(sJson)
+  Print Now & " getBase64"
+  sBase64 = hFrameImageCarrier["base64"]
+  sMd5 = hFrameImageCarrier["md5"]
+  Print Now & " loadImage"
+
+  ImageView1.Image = Image.FromString(UnBase64(sBase64))
+
+  Print Now & " done"
+
+End
+
+Public Sub ImageView1_Arrange()
+
+  ImageView1.ZoomFit
+
+End

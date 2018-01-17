@@ -1,0 +1,33 @@
+' Gambas module file
+
+Property FullScreen As Boolean
+Property Maximized As Boolean
+
+Private Const DEFAULT_WINDOW_MAXIMIZED As Boolean = True
+Private Const KEY_WINDOW_FULL_SCREEN As String = "Window/FullScreen"
+Private Const KEY_WINDOW_MAXIMIZED As String = "Window/Maximized"
+
+
+Private Function FullScreen_Read() As Boolean
+
+  Return Settings[KEY_WINDOW_FULL_SCREEN, False]
+
+End
+
+Private Sub FullScreen_Write(Value As Boolean)
+
+  Settings[KEY_WINDOW_FULL_SCREEN] = Value
+
+End
+
+Private Function Maximized_Read() As Boolean
+
+  Return Settings[KEY_WINDOW_MAXIMIZED, DEFAULT_WINDOW_MAXIMIZED]
+
+End
+
+Private Sub Maximized_Write(Value As Boolean)
+
+  Settings[KEY_WINDOW_MAXIMIZED] = Value
+
+End

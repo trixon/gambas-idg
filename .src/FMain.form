@@ -1,0 +1,17 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,64,64)
+  Background = Color.DarkGray
+  Stacking = Window.Above
+  Arrangement = Arrange.Fill
+  { ImageView1 ImageView
+    MoveScaled(14,16.5714,36,36)
+    Border = False
+  }
+  { socket #Socket
+    #MoveScaled(2.8571,5.4286)
+    Host = "localhost"
+    Port = 5705
+  }
+}
