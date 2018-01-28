@@ -1,0 +1,59 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,37,42)
+  Expand = True
+  Text = ("Settings")
+  Resizable = False
+  SkipTaskbar = True
+  Arrangement = Arrange.Vertical
+  Spacing = True
+  Margin = True
+  { Panel2 Panel
+    MoveScaled(2,2,43,31)
+    Expand = True
+    Arrangement = Arrange.Vertical
+    { Label1 Label
+      MoveScaled(0,1,24,4)
+      Text = ("Host")
+    }
+    { hHostTextBox TextBox
+      MoveScaled(0,5.8571,24,4)
+    }
+    { Label2 Label
+      MoveScaled(2,9,24,4)
+      Text = ("Port")
+    }
+    { hPortSpinBox SpinBox
+      MoveScaled(1,13,14,4)
+      MinValue = 1024
+      MaxValue = 65536
+    }
+    { hColorLabel Label
+      MoveScaled(2,18.2857,24,4)
+      Text = ("Background")
+    }
+    { hColorButton ColorButton
+      MoveScaled(2,24,8,4)
+    }
+  }
+  { HBox1 HBox
+    MoveScaled(-3,35,50,4)
+    AutoResize = True
+    Spacing = True
+    { Panel1 Panel
+      MoveScaled(4,0,4,4)
+      Expand = True
+    }
+    { btnOK Button
+      MoveScaled(15,0,12,4)
+      Text = ("OK")
+      Default = True
+    }
+    { btnCancel Button
+      MoveScaled(32,0,12,4)
+      Text = ("Cancel")
+      Cancel = True
+    }
+  }
+}

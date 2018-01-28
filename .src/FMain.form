@@ -1,17 +1,119 @@
 # Gambas Form File 3.0
 
 { Form Form
-  MoveScaled(0,0,64,64)
+  MoveScaled(0,0,98,67)
   Background = Color.DarkGray
+  PopupMenu = "mnuMain"
   Stacking = Window.Above
-  Arrangement = Arrange.Fill
-  { ImageView1 ImageView
-    MoveScaled(14,16.5714,36,36)
+  Arrangement = Arrange.Vertical
+  { mnuMain Menu
+    { mnuRandom Menu
+      Action = "random"
+      Text = ("Random")
+      Shortcut = "R"
+    }
+    { mnuPrevious Menu
+      Action = "previous"
+      Text = ("Previous")
+      Shortcut = "P"
+    }
+    { mnuNext Menu
+      Action = "next"
+      Text = ("Next")
+      Enabled = False
+      Shortcut = "N"
+    }
+    { mnuFullscreen Menu
+      Action = "full_screen"
+      Text = ("Fullscreen")
+      Shortcut = "F"
+    }
+    { Menu1 Menu
+    }
+    { mnuSettings Menu
+      Action = "settings"
+      Text = ("Settings")
+      Shortcut = "S"
+    }
+    { mnuAbout Menu
+      Action = "about"
+      Text = ("About")
+      Shortcut = "A"
+    }
+    { Menu2 Menu
+    }
+    { mnuQuit Menu
+      Action = "quit"
+      Text = ("Quit")
+      Shortcut = "Q"
+    }
+  }
+  { hTopPanel Panel
+    MoveScaled(2,2,68,5)
+    Visible = False
+    Arrangement = Arrange.Horizontal
+    { hSendButton Button
+      MoveScaled(1,1,23,4)
+      Enabled = False
+      AutoResize = True
+      Text = ("Send")
+    }
+    { hSendTextBox TextBox
+      MoveScaled(29,1,22,4)
+      Enabled = False
+      Expand = True
+      Text = ("random")
+    }
+  }
+  { hImageView ImageView
+    MoveScaled(15,25,36,36)
+    Tracking = True
+    Expand = True
     Border = False
   }
-  { socket #Socket
-    #MoveScaled(2.8571,5.4286)
-    Host = "localhost"
-    Port = 5705
+  { hSocket #Socket
+    #MoveScaled(3,9)
+    Port = 0
+  }
+  { hTimeoutTimer #Timer
+    #MoveScaled(41,8)
+  }
+  { hMouseTimer #Timer
+    #MoveScaled(59.5714,14.2857)
+    Enabled = True
+    Delay = 4000
+  }
+}
+
+# Gambas Action File 3.0
+
+{ Actions
+  { Action about
+    Text = "About"
+    Shortcut = "A"
+  }
+  { Action full_screen
+    Text = "Fullscreen"
+    Shortcut = "F"
+  }
+  { Action next
+    Text = "Next"
+    Shortcut = "N"
+  }
+  { Action previous
+    Text = "Previous"
+    Shortcut = "P"
+  }
+  { Action quit
+    Text = "Quit"
+    Shortcut = "Q"
+  }
+  { Action random
+    Text = "Random"
+    Shortcut = "R"
+  }
+  { Action settings
+    Text = "Settings"
+    Shortcut = "S"
   }
 }

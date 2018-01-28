@@ -1,23 +1,82 @@
 ' Gambas class file
 
+Private Const FRAME_IMAGE_BEG As String = "::FRAME_IMAGE_BEG::"
+Private Const FRAME_IMAGE_END As String = "::FRAME_IMAGE_END::"
 
+Private $sJson As String
+Private $bBlock As Boolean
+Private bMouseHide As Boolean = True
+Private hClient As Client = New Client
+Private hLog As New Logger(Logger.Info, Null, Logger.Stdout)
+Private hPreviousImage As Image
+
+Public Sub _new()
+
+  hLog.Format = "[$(now)] [$(levelname)] [$(callLocation)] $(message)"
+  hLog.Begin()
+  hLog.Log(("Initializing " & Application.Title & "..."), Logger.Info)
+  Settings.Read(Me)
+  hSocket.Host = MSettings.Host
+  hSocket.Port = MSettings.Port
+  hTimeoutTimer.Delay = 5000
+
+End
+
+Public Sub Action_Activate(sAction As String) As Boolean
+
+  hLog("Action: " & sAction)
+  Select Case sAction
+    Case "previous"
+      NavigatePrevious()
+
+    Case "about"
+      ShowAbout()
+
+    Case "help"
+      ' ShowHelp()
+
+    Case "settings"
+      ShowSettings()
+
+    Case "random"
+      Send("random")
+
+    Case "full_screen"
+      FullScreenToggle()
+
+    Case "quit"
+      Me.Close
+
+    Default
+      hLog("Unknown action: " & sAction)
+
+  End Select
+
+End
+
+Public Sub Form_Open()
+
+  Me.Maximized = MSettings.Maximized
+  Me.FullScreen = MSettings.FullScreen
+  Connect()
+
+End
 
 Public Sub Form_KeyPress()
 
   If Key.Code = Key.Esc Then
     Me.Close()
+  Else If Key.Code = Key["A"]
+    Action_Activate("about")
+  Else If Key.Code = Key["S"]
+    Action_Activate("settings")
+  Else If Key.Code = Key["R"] Or Key.Code = Key.Space
+    Action_Activate("random")
   Else If Key.Code = Key["Q"] And If Key.Control Or Key.Code = Key["Q"]
     Me.Close()
-  Else If Key.Code = Key["F11"]
+  Else If Key.Code = Key["F11"] Or Key.Code = Key["f"]
     FullScreenToggle()
   Endif
-
-
-End
-
-Public Sub FullScreenToggle()
-
-  Me.FullScreen = Not Me.FullScreen
 
 End
 
@@ -27,44 +86,246 @@ Public Sub Form_Close()
   MSettings.FullScreen = Me.FullScreen
   MSettings.Maximized = Me.Maximized
 
-End
-
-Public Sub Form_Open()
-
-
-  Settings.Read(Me)
-  Me.Maximized = MSettings.Maximized
-  Me.FullScreen = MSettings.FullScreen
-
-  loadImage
+  CloseSocket()
+  hLog.Log(("Shutting down " & Application.Title), Logger.Info)
 
 End
 
-Private Sub loadImage()
+Public Sub hImageView_Arrange()
 
-  Dim sJson As String
-  Dim sJsonPath As String = "frameImageCarrier.json"
+  hImageView.ZoomFit()
+
+End
+
+Public Sub hSocket_Ready()
+
+  hTimeoutTimer.Enabled = False
+  Me.Text = Application.Title & " (" & hSocket.LocalHost & ":" & hSocket.LocalPort & ")"
+  hLog(("Connected to remote host ") & hSocket.Path)
+  hLog(("Using local address: ") & hSocket.LocalHost & ": " & hSocket.LocalPort)
+  Me.Enabled = True
+  Set_Interface(True)
+  Send("register")
+  Send("random")
+
+End
+
+Public Sub hSocket_Closed()
+
+  Me.Caption = ("Connection Closed by foreign host.")
+  Me.Enabled = True
+  Set_Interface(False)
+
+End
+
+Public Sub hSocket_Read()
+
+  Dim s As String
+
+  If hSocket.Status = Net.Connected Then
+    Read #hSocket, s, Lof(hSocket)
+
+    If String.InStr(s, FRAME_IMAGE_BEG) > 0 Then
+      $bBlock = True
+      $sJson = String.Right(s, - String.InStr(s, "{") + 1)
+      hLog.Log(("New inbound image..."), Logger.Info)
+
+    Else If $bBlock And String.InStr(s, FRAME_IMAGE_END) = 0
+      $sJson = $sJson & s
+    Else If $bBlock
+      $sJson = $sJson & String.Left(s, String.InStr(s, FRAME_IMAGE_END) - 2)
+      $bBlock = False
+      'File.Save("/home/pata/frameImageCarrierGambas.json", $sJson)
+      loadImage($sJson)
+    Endif
+  End If
+
+End
+
+Public Sub hSocket_Error()
+
+  Dim sMessage As String
+
+  Select Case hSocket.Status
+    Case Net.CannotCreateSocket
+      sMessage = ("The system does not allow to create a socket")
+    Case Net.HostNotFound
+      sMessage = ("Host not Found")
+    Case Net.ConnectionRefused
+      sMessage = ("Unable to Connect. Connection Refused")
+    Case Net.CannotRead
+      sMessage = ("Error Reading Data")
+    Case Net.CannotWrite
+      sMessage = ("Error Writing Data")
+  End Select
+
+  hLog.Log(sMessage, Logger.Error)
+  Message.Title = ("Socket Error")
+  Message.Error(sMessage)
+  Set_Interface(False)
+
+End
+
+Private Sub Set_Interface(bState As Boolean)
+
+  hTimeoutTimer.Enabled = bState
+  hSendButton.Enabled = bState
+  hSendTextBox.Enabled = bState
+
+End
+
+Public Sub hTimeoutTimer_Timer()
+
+  Me.Enabled = True
+  hTimeoutTimer.Enabled = False
+  If hSocket.Status <> Net.Connected Then
+    CloseSocket()
+    Set_Interface(False)
+    hLog.Log(("Timeout trying to stablish connection"), Logger.Warning)
+  End If
+  Print Now(), "hTimeoutTimer_Timer"
+
+End
+
+Public Sub hSendButton_Click()
+
+  send(hSendTextBox.Text)
+
+End
+
+Public Sub hImageView_DblClick()
+
+  FullScreenToggle()
+
+End
+
+Public Sub hImageView_MouseMove()
+
+  hMouseTimer.Enabled = True
+  Me.Mouse = Mouse.Default
+
+End
+
+Public Sub hMouseTimer_Timer()
+
+  hMouseTimer.Enabled = False
+  If bMouseHide Then
+    Me.Mouse = Mouse.Blank
+
+  Endif
+
+End
+
+Private Sub FullScreenToggle()
+
+  Me.FullScreen = Not Me.FullScreen
+
+End
+
+Private Sub Connect()
+
+  LoadSettings()
+  hSocket.Connect()
+  If hSocket.Status > Net.Inactive Then
+    hLog.Log(("Looking up host name..."), Logger.Info)
+    hTimeoutTimer.Enabled = True
+  End If
+
+End
+
+Private Sub LoadImage(sJson As String)
+
   Dim hFrameImageCarrier As Collection
+  Dim hRotatioins As Collection = New Collection
   Dim sBase64 As String
   Dim sMd5 As String
+  Dim iOrientation As Integer
+  Dim fRotation As Float
 
-  Print Now & " load json"
-  sJson = File.Load(sJsonPath)
-  Print Now & " decode json"
+  hRotatioins.Add(0, "1")
+  hRotatioins.Add(- GSL.PI, "3") '180
+  hRotatioins.Add(- GSL.PI_2, "6") '90
+  hRotatioins.Add(- GSL.PI_2 * 3, "8") '270
+  hLog.Log(("Decode image..."), Logger.Info)
+
   hFrameImageCarrier = JSON.Decode(sJson)
-  Print Now & " getBase64"
   sBase64 = hFrameImageCarrier["base64"]
-  sMd5 = hFrameImageCarrier["md5"]
-  Print Now & " loadImage"
+  iOrientation = hFrameImageCarrier["frame_image"]["information"]["orientation"]
+  fRotation = hRotatioins[iOrientation]
 
-  ImageView1.Image = Image.FromString(UnBase64(sBase64))
-
-  Print Now & " done"
+  hLog.Log(("Display image..."), Logger.Info)
+  hPreviousImage = hImageView.Image
+  hImageView.Image = Image.FromString(UnBase64(sBase64)).Rotate(fRotation)
+  hImageView.ZoomFit()
 
 End
 
-Public Sub ImageView1_Arrange()
+Private Sub CloseSocket()
 
-  ImageView1.ZoomFit
+  If hSocket.Status > 0 Then
+    hLog.Log(("Closing connection..."), Logger.Info)
+    Close #hSocket
+  Endif
+
+End
+
+Private Sub LoadSettings()
+
+  Me.Background = MSettings.Background
+  CloseSocket()
+  hSocket.Host = MSettings.Host
+  hSocket.Port = MSettings.Port
+  Print MSettings.Host, MSettings.Port
+
+End
+
+Private Sub Send(s As String)
+
+  If hSocket.Status = Net.Connected Then
+    s = s & "\n" '
+    Write #hSocket, s, Len(s)
+  End If
+
+End
+
+Private Sub ShowAbout()
+
+  Dim hForm As New FAbout
+
+  Me.Mouse = Mouse.Default
+  bMouseHide = False
+  With hForm
+    .AppAuthor = "Patrik Karlsson"
+    .AppCopyright = ("Copyright © 2018 Patrik Karlsson")
+    .AppDescription = ("IDD Frame")
+    ' .AppLogo = Picture.Load("logo.png")
+  End With
+
+  hForm.Run()
+  bMouseHide = True
+  Me.Mouse = Mouse.Blank
+
+End
+
+Private Sub ShowSettings()
+
+  Dim hForm As New FSettings
+
+  Me.Mouse = Mouse.Default
+  bMouseHide = False
+  If hForm.Run() Then
+    Connect()
+  Endif
+  bMouseHide = True
+  Me.Mouse = Mouse.Blank
+
+End
+
+Private Sub NavigatePrevious()
+
+  Dim hImage As Image = hImageView.Image
+  hImageView.Image = hPreviousImage
+  hImageView.ZoomFit()
+  hPreviousImage = hImage
 
 End

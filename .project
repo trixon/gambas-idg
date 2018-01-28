@@ -2,14 +2,18 @@
 # Compiled with Gambas 3.10.90
 Title=idg
 Startup=FMain
-Version=0.0.3
+Version=0.0.7
 Component=gb.image
 Component=gb.gui
 Component=gb.form
 Component=gb.settings
+Component=gb.gsl
+Component=gb.logging
 Component=gb.net
 Component=gb.util.web
+Library=:trixon/libpkcommons:0.2
 Authors="Patrik Karlsson"
+Environment="LANG=sv\nLC_ALL=sv"
 TabSize=2
 Translate=1
 Language=en_US

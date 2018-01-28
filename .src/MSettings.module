@@ -2,11 +2,19 @@
 
 Property FullScreen As Boolean
 Property Maximized As Boolean
+Property Host As String
+Property Port As Integer
+Property Background As Integer
 
+Private Const DEFAULT_WINDOW_BACKGROUND As Integer = &0262626
 Private Const DEFAULT_WINDOW_MAXIMIZED As Boolean = True
+Private Const DEFAULT_SOCKET_HOST As String = "127.0.0.1"
+Private Const DEFAULT_SOCKET_PORT As Integer = 5705
 Private Const KEY_WINDOW_FULL_SCREEN As String = "Window/FullScreen"
 Private Const KEY_WINDOW_MAXIMIZED As String = "Window/Maximized"
-
+Private Const KEY_WINDOW_BACKGROUND As String = "Window/Background"
+Private Const KEY_SOCKET_HOST As String = "Socket/Host"
+Private Const KEY_SOCKET_PORT As String = "Socket/Port"
 
 Private Function FullScreen_Read() As Boolean
 
@@ -29,5 +37,41 @@ End
 Private Sub Maximized_Write(Value As Boolean)
 
   Settings[KEY_WINDOW_MAXIMIZED] = Value
+
+End
+
+Private Function Host_Read() As String
+
+  Return Settings[KEY_SOCKET_HOST, DEFAULT_SOCKET_HOST]
+
+End
+
+Private Sub Host_Write(Value As String)
+
+  Settings[KEY_SOCKET_HOST] = Value
+
+End
+
+Private Function Port_Read() As Integer
+
+  Return Settings[KEY_SOCKET_PORT, DEFAULT_SOCKET_PORT]
+
+End
+
+Private Sub Port_Write(Value As Integer)
+
+  Settings[KEY_SOCKET_PORT] = Value
+
+End
+
+Private Function Background_Read() As Integer
+
+  Return Settings[KEY_WINDOW_BACKGROUND, DEFAULT_WINDOW_BACKGROUND]
+
+End
+
+Private Sub Background_Write(Value As Integer)
+
+  Settings[KEY_WINDOW_BACKGROUND] = Value
 
 End

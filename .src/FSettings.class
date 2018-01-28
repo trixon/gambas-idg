@@ -1,0 +1,29 @@
+' Gambas class file
+
+Public Sub _new()
+
+End
+
+Public Sub Run() As Boolean
+
+  hHostTextBox.Text = MSettings.Host
+  hPortSpinBox.Value = MSettings.Port
+  hColorButton.Color = MSettings.Background
+  Return Me.ShowModal()
+
+End
+
+Public Sub btnOK_Click()
+
+  MSettings.Host = hHostTextBox.Text
+  MSettings.Port = hPortSpinBox.Value
+  MSettings.Background = hColorButton.Color
+  Me.Close(True)
+
+End
+
+Public Sub btnCancel_Click()
+
+  Me.Close
+
+End
